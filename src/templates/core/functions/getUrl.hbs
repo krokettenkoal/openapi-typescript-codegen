@@ -1,18 +1,25 @@
-const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
+const getUrl = async (config: OpenAPIConfig, options: ApiRequestOptions): Promise<string> => {
 	const encoder = config.ENCODE_PATH || encodeURI;
+    const apiKeys = await getApiKeys(config, options, 'query');
 
 	const path = options.url
 		.replace('{api-version}', config.VERSION)
-		.replace(/{(.*?)}/g, (substring: string, group: string) => {
+        .replace(/{(.*?)}/g, (substring: string, group: string) => {
 			if (options.path?.hasOwnProperty(group)) {
 				return encoder(String(options.path[group]));
 			}
 			return substring;
-		});
+	});
 
-	const url = `${options.server || config.BASE}${path}`;
-	if (options.query) {
-		return `${url}${getQueryString(options.query)}`;
+    const url = `${options.server || config.BASE}${path}`;
+    const query = options.query ?? {};
+
+    for(const key in apiKeys) {
+		query[key] = apiKeys[key];
+	}
+
+	if (Object.keys(query).length > 0) {
+		return `${url}${getQueryString(query)}`;
 	}
 	return url;
 };

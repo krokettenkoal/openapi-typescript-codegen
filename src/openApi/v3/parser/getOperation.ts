@@ -14,6 +14,7 @@ import { getOperationServer } from './getServer';
 import { getRef } from './getRef';
 import { getServiceName } from './getServiceName';
 import { sortByRequired } from './sortByRequired';
+import { getOperationApiKeys } from "./getOperationApiKeys";
 
 export const getOperation = (
     openApi: OpenApi,
@@ -26,6 +27,7 @@ export const getOperation = (
     const serviceName = getServiceName(tag);
     const operationName = getOperationName(url, method, op.operationId);
     const server = getOperationServer(op);
+    const apiKeys = getOperationApiKeys(openApi, op);
 
     // Create a new operation object for this method.
     const operation: Operation = {
@@ -37,6 +39,7 @@ export const getOperation = (
         method: method.toUpperCase(),
         path: url,
         server: server,
+        apiKeys: apiKeys,
         parameters: [...pathParams.parameters],
         parametersPath: [...pathParams.parametersPath],
         parametersQuery: [...pathParams.parametersQuery],

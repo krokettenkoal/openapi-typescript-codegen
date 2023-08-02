@@ -27,6 +27,7 @@ import fetchRequest from '../templates/core/fetch/request.hbs';
 import fetchSendRequest from '../templates/core/fetch/sendRequest.hbs';
 import functionBase64 from '../templates/core/functions/base64.hbs';
 import functionCatchErrorCodes from '../templates/core/functions/catchErrorCodes.hbs';
+import functionGetApiKeys from '../templates/core/functions/getApiKeys.hbs';
 import functionGetFormData from '../templates/core/functions/getFormData.hbs';
 import functionGetQueryString from '../templates/core/functions/getQueryString.hbs';
 import functionGetUrl from '../templates/core/functions/getUrl.hbs';
@@ -179,6 +180,7 @@ export const registerHandlebarTemplates = (root: {
     Handlebars.registerPartial('functions/isSuccess', Handlebars.template(functionIsSuccess));
     Handlebars.registerPartial('functions/base64', Handlebars.template(functionBase64));
     Handlebars.registerPartial('functions/resolve', Handlebars.template(functionResolve));
+    Handlebars.registerPartial('functions/getApiKeys', Handlebars.template(functionGetApiKeys));
 
     // Specific files for the fetch client implementation
     Handlebars.registerPartial('fetch/getHeaders', Handlebars.template(fetchGetHeaders));

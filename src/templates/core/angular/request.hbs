@@ -29,6 +29,9 @@ import type { OpenAPIConfig } from './OpenAPI';
 {{>functions/base64}}
 
 
+{{>functions/getApiKeys}}
+
+
 {{>functions/getQueryString}}
 
 
@@ -68,7 +71,7 @@ import type { OpenAPIConfig } from './OpenAPI';
  * @throws ApiError
  */
 export const request = <T>(config: OpenAPIConfig, http: HttpClient, options: ApiRequestOptions): Observable<T> => {
-	const url = getUrl(config, options);
+	const url = await getUrl(config, options);
 	const formData = getFormData(options);
 	const body = getRequestBody(options);
 

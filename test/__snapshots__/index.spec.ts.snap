@@ -34,6 +34,11 @@ exports[`v2 should generate: test\\generated\\v2\\core\\ApiRequestOptions.ts 1`]
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+export interface ApiKey {
+    name: string;
+    in: 'header' | 'query' | 'cookie';
+}
+
 export type ApiRequestOptions = {
     readonly method: 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'PATCH';
     readonly url: string;
@@ -44,6 +49,7 @@ export type ApiRequestOptions = {
     readonly query?: Record<string, any>;
     readonly formData?: Record<string, any>;
     readonly body?: any;
+    readonly apiKeys?: Record<string, ApiKey>;
     readonly mediaType?: string;
     readonly responseHeader?: string;
     readonly errors?: Record<number, string>;
@@ -210,6 +216,7 @@ import type { ApiRequestOptions } from './ApiRequestOptions';
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 type Headers = Record<string, string>;
+type ApiKeys = Record<string, string>;
 
 export type OpenAPIConfig = {
     BASE: string;
@@ -220,6 +227,7 @@ export type OpenAPIConfig = {
     USERNAME?: string | Resolver<string> | undefined;
     PASSWORD?: string | Resolver<string> | undefined;
     HEADERS?: Headers | Resolver<Headers> | undefined;
+    API_KEYS?: ApiKeys | Resolver<ApiKeys> | undefined;
     ENCODE_PATH?: ((path: string) => string) | undefined;
 };
 
@@ -233,6 +241,7 @@ export const OpenAPI: OpenAPIConfig = {
     PASSWORD: undefined,
     HEADERS: undefined,
     ENCODE_PATH: undefined,
+    API_KEYS: undefined,
 };
 "
 `;
@@ -287,6 +296,24 @@ export const base64 = (str: string): string => {
     }
 };
 
+export const getApiKeys = async (config: OpenAPIConfig, options: ApiRequestOptions, keyIn?: 'query' | 'header' | 'cookie'): Promise<Record<string, string>> => {
+    const apiKeys = await resolve(options, config.API_KEYS);
+    const result: Record<string, string> = {};
+
+    if(options.apiKeys) {
+        Object.entries(options.apiKeys)
+            .filter(([_, value]) => keyIn ? value.in === keyIn : value)
+            .forEach(([key, value]) => {
+                if(apiKeys?.[key])
+                    result[value.name] = apiKeys[key];
+                else
+                    console.warn(\`API key '\${key}' missing in API_KEYS configuration! URL: \${options.server || config.BASE}\${options.url}\`);
+            });
+    }
+
+    return result;
+}
+
 export const getQueryString = (params: Record<string, any>): string => {
     const qs: string[] = [];
 
@@ -321,8 +348,9 @@ export const getQueryString = (params: Record<string, any>): string => {
     return '';
 };
 
-const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
+const getUrl = async (config: OpenAPIConfig, options: ApiRequestOptions): Promise<string> => {
     const encoder = config.ENCODE_PATH || encodeURI;
+    const apiKeys = await getApiKeys(config, options, 'query');
 
     const path = options.url
         .replace('{api-version}', config.VERSION)
@@ -331,11 +359,17 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
                 return encoder(String(options.path[group]));
             }
             return substring;
-        });
+    });
 
     const url = \`\${options.server || config.BASE}\${path}\`;
-    if (options.query) {
-        return \`\${url}\${getQueryString(options.query)}\`;
+    const query = options.query ?? {};
+
+    for(const key in apiKeys) {
+        query[key] = apiKeys[key];
+    }
+
+    if (Object.keys(query).length > 0) {
+        return \`\${url}\${getQueryString(query)}\`;
     }
     return url;
 };
@@ -381,6 +415,9 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     const username = await resolve(options, config.USERNAME);
     const password = await resolve(options, config.PASSWORD);
     const additionalHeaders = await resolve(options, config.HEADERS);
+    const apiKeysHeader = await getApiKeys(config, options, 'header');
+    const apiKeysCookies = await getApiKeys(config, options, 'cookie');
+    const apiKeysCookiesString = Object.entries(apiKeysCookies).map(([key, value]) => \`\${key}=\${value}\`).join('; ');
 
     const headers = Object.entries({
         Accept: 'application/json',
@@ -400,6 +437,19 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     if (isStringWithValue(username) && isStringWithValue(password)) {
         const credentials = base64(\`\${username}:\${password}\`);
         headers['Authorization'] = \`Basic \${credentials}\`;
+    }
+
+    for(const key in apiKeysHeader) {
+        headers[key] = apiKeysHeader[key];
+    }
+
+    if(isStringWithValue(apiKeysCookiesString)) {
+        if(headers['Cookie']) {
+            headers['Cookie'] = \`\${headers['Cookie']}; \${apiKeysCookiesString}\`;
+        }
+        else {
+            headers['Cookie'] = apiKeysCookiesString;
+        }
     }
 
     if (options.body) {
@@ -531,7 +581,7 @@ export const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): 
 export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): CancelablePromise<T> => {
     return new CancelablePromise(async (resolve, reject, onCancel) => {
         try {
-            const url = getUrl(config, options);
+            const url = await getUrl(config, options);
             const formData = getFormData(options);
             const body = getRequestBody(options);
             const headers = await getHeaders(config, options);
@@ -3128,6 +3178,11 @@ exports[`v3 should generate: test\\generated\\v3\\core\\ApiRequestOptions.ts 1`]
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+export interface ApiKey {
+    name: string;
+    in: 'header' | 'query' | 'cookie';
+}
+
 export type ApiRequestOptions = {
     readonly method: 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'PATCH';
     readonly url: string;
@@ -3138,6 +3193,7 @@ export type ApiRequestOptions = {
     readonly query?: Record<string, any>;
     readonly formData?: Record<string, any>;
     readonly body?: any;
+    readonly apiKeys?: Record<string, ApiKey>;
     readonly mediaType?: string;
     readonly responseHeader?: string;
     readonly errors?: Record<number, string>;
@@ -3304,6 +3360,7 @@ import type { ApiRequestOptions } from './ApiRequestOptions';
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 type Headers = Record<string, string>;
+type ApiKeys = Record<string, string>;
 
 export type OpenAPIConfig = {
     BASE: string;
@@ -3314,6 +3371,7 @@ export type OpenAPIConfig = {
     USERNAME?: string | Resolver<string> | undefined;
     PASSWORD?: string | Resolver<string> | undefined;
     HEADERS?: Headers | Resolver<Headers> | undefined;
+    API_KEYS?: ApiKeys | Resolver<ApiKeys> | undefined;
     ENCODE_PATH?: ((path: string) => string) | undefined;
 };
 
@@ -3327,6 +3385,7 @@ export const OpenAPI: OpenAPIConfig = {
     PASSWORD: undefined,
     HEADERS: undefined,
     ENCODE_PATH: undefined,
+    API_KEYS: undefined,
 };
 "
 `;
@@ -3381,6 +3440,24 @@ export const base64 = (str: string): string => {
     }
 };
 
+export const getApiKeys = async (config: OpenAPIConfig, options: ApiRequestOptions, keyIn?: 'query' | 'header' | 'cookie'): Promise<Record<string, string>> => {
+    const apiKeys = await resolve(options, config.API_KEYS);
+    const result: Record<string, string> = {};
+
+    if(options.apiKeys) {
+        Object.entries(options.apiKeys)
+            .filter(([_, value]) => keyIn ? value.in === keyIn : value)
+            .forEach(([key, value]) => {
+                if(apiKeys?.[key])
+                    result[value.name] = apiKeys[key];
+                else
+                    console.warn(\`API key '\${key}' missing in API_KEYS configuration! URL: \${options.server || config.BASE}\${options.url}\`);
+            });
+    }
+
+    return result;
+}
+
 export const getQueryString = (params: Record<string, any>): string => {
     const qs: string[] = [];
 
@@ -3415,8 +3492,9 @@ export const getQueryString = (params: Record<string, any>): string => {
     return '';
 };
 
-const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
+const getUrl = async (config: OpenAPIConfig, options: ApiRequestOptions): Promise<string> => {
     const encoder = config.ENCODE_PATH || encodeURI;
+    const apiKeys = await getApiKeys(config, options, 'query');
 
     const path = options.url
         .replace('{api-version}', config.VERSION)
@@ -3425,11 +3503,17 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
                 return encoder(String(options.path[group]));
             }
             return substring;
-        });
+    });
 
     const url = \`\${options.server || config.BASE}\${path}\`;
-    if (options.query) {
-        return \`\${url}\${getQueryString(options.query)}\`;
+    const query = options.query ?? {};
+
+    for(const key in apiKeys) {
+        query[key] = apiKeys[key];
+    }
+
+    if (Object.keys(query).length > 0) {
+        return \`\${url}\${getQueryString(query)}\`;
     }
     return url;
 };
@@ -3475,6 +3559,9 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     const username = await resolve(options, config.USERNAME);
     const password = await resolve(options, config.PASSWORD);
     const additionalHeaders = await resolve(options, config.HEADERS);
+    const apiKeysHeader = await getApiKeys(config, options, 'header');
+    const apiKeysCookies = await getApiKeys(config, options, 'cookie');
+    const apiKeysCookiesString = Object.entries(apiKeysCookies).map(([key, value]) => \`\${key}=\${value}\`).join('; ');
 
     const headers = Object.entries({
         Accept: 'application/json',
@@ -3494,6 +3581,19 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
     if (isStringWithValue(username) && isStringWithValue(password)) {
         const credentials = base64(\`\${username}:\${password}\`);
         headers['Authorization'] = \`Basic \${credentials}\`;
+    }
+
+    for(const key in apiKeysHeader) {
+        headers[key] = apiKeysHeader[key];
+    }
+
+    if(isStringWithValue(apiKeysCookiesString)) {
+        if(headers['Cookie']) {
+            headers['Cookie'] = \`\${headers['Cookie']}; \${apiKeysCookiesString}\`;
+        }
+        else {
+            headers['Cookie'] = apiKeysCookiesString;
+        }
     }
 
     if (options.body) {
@@ -3625,7 +3725,7 @@ export const catchErrorCodes = (options: ApiRequestOptions, result: ApiResult): 
 export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions): CancelablePromise<T> => {
     return new CancelablePromise(async (resolve, reject, onCancel) => {
         try {
-            const url = getUrl(config, options);
+            const url = await getUrl(config, options);
             const formData = getFormData(options);
             const body = getRequestBody(options);
             const headers = await getHeaders(config, options);

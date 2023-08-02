@@ -4,6 +4,8 @@ export const getHeaders = (config: OpenAPIConfig, options: ApiRequestOptions): O
 		username: resolve(options, config.USERNAME),
 		password: resolve(options, config.PASSWORD),
 		additionalHeaders: resolve(options, config.HEADERS),
+		apiKeysHeader: getApiKeys(config, options, 'header'),
+		apiKeysCookies: getApiKeys(config, options, 'cookie'),
 	}).pipe(
 		map(({ token, username, password, additionalHeaders }) => {
 			const headers = Object.entries({
@@ -24,6 +26,20 @@ export const getHeaders = (config: OpenAPIConfig, options: ApiRequestOptions): O
 			if (isStringWithValue(username) && isStringWithValue(password)) {
 				const credentials = base64(`${username}:${password}`);
 				headers['Authorization'] = `Basic ${credentials}`;
+			}
+
+			for(const key in apiKeysHeader) {
+				headers[key] = apiKeysHeader[key];
+			}
+
+			const apiKeysCookiesString = Object.entries(apiKeysCookies).map(([key, value]) => `${key}=${value}`).join('; ');
+			if(isStringWithValue(apiKeysCookiesString)) {
+				if(headers['Cookie']) {
+					headers['Cookie'] = `${headers['Cookie']}; ${apiKeysCookiesString}`;
+				}
+				else {
+					headers['Cookie'] = apiKeysCookiesString;
+				}
 			}
 
 			if (options.body) {

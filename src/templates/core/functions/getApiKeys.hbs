@@ -1,0 +1,17 @@
+export const getApiKeys = async (config: OpenAPIConfig, options: ApiRequestOptions, keyIn?: 'query' | 'header' | 'cookie'): Promise<Record<string, string>> => {
+	const apiKeys = await resolve(options, config.API_KEYS);
+	const result: Record<string, string> = {};
+
+	if(options.apiKeys) {
+		Object.entries(options.apiKeys)
+			.filter(([_, value]) => keyIn ? value.in === keyIn : value)
+			.forEach(([key, value]) => {
+				if(apiKeys?.[key])
+					result[value.name] = apiKeys[key];
+				else
+					console.warn(`API key '${key}' missing in API_KEYS configuration! URL: ${options.server || config.BASE}${options.url}`);
+			});
+	}
+
+	return result;
+}

@@ -3,6 +3,9 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
 	const username = await resolve(options, config.USERNAME);
 	const password = await resolve(options, config.PASSWORD);
 	const additionalHeaders = await resolve(options, config.HEADERS);
+    const apiKeysHeader = await getApiKeys(config, options, 'header');
+    const apiKeysCookies = await getApiKeys(config, options, 'cookie');
+    const apiKeysCookiesString = Object.entries(apiKeysCookies).map(([key, value]) => `${key}=${value}`).join('; ');
 
 	const headers = Object.entries({
 		Accept: 'application/json',
@@ -22,6 +25,19 @@ export const getHeaders = async (config: OpenAPIConfig, options: ApiRequestOptio
 	if (isStringWithValue(username) && isStringWithValue(password)) {
 		const credentials = base64(`${username}:${password}`);
 		headers['Authorization'] = `Basic ${credentials}`;
+	}
+
+	for(const key in apiKeysHeader) {
+		headers[key] = apiKeysHeader[key];
+	}
+
+	if(isStringWithValue(apiKeysCookiesString)) {
+		if(headers['Cookie']) {
+			headers['Cookie'] = `${headers['Cookie']}; ${apiKeysCookiesString}`;
+		}
+		else {
+			headers['Cookie'] = apiKeysCookiesString;
+		}
 	}
 
 	if (options.body) {

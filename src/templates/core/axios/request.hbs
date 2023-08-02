@@ -32,6 +32,9 @@ import type { OpenAPIConfig } from './OpenAPI';
 {{>functions/base64}}
 
 
+{{>functions/getApiKeys}}
+
+
 {{>functions/getQueryString}}
 
 
@@ -73,7 +76,7 @@ import type { OpenAPIConfig } from './OpenAPI';
 export const request = <T>(config: OpenAPIConfig, options: ApiRequestOptions, axiosClient: AxiosInstance = axios): CancelablePromise<T> => {
 	return new CancelablePromise(async (resolve, reject, onCancel) => {
 		try {
-			const url = getUrl(config, options);
+			const url = await getUrl(config, options);
 			const formData = getFormData(options);
 			const body = getRequestBody(options);
 			const headers = await getHeaders(config, options, formData);
