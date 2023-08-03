@@ -32,7 +32,7 @@ export const OpenAPI: OpenAPIConfig = {
 	{{#if apiKeys}}
 	API_KEYS: {
 	{{#each apiKeys}}
-		'{{{key}}}': undefined,
+		'{{{key}}}': '',
 	{{/each}}
 	}
 	{{/if}}
