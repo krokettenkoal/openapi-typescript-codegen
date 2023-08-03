@@ -4,6 +4,7 @@ import type { ApiRequestOptions } from './ApiRequestOptions';
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 type Headers = Record<string, string>;
+type ApiKeys = Record<string, string>;
 
 export type OpenAPIConfig = {
 	BASE: string;
@@ -14,6 +15,7 @@ export type OpenAPIConfig = {
 	USERNAME?: string | Resolver<string> | undefined;
 	PASSWORD?: string | Resolver<string> | undefined;
 	HEADERS?: Headers | Resolver<Headers> | undefined;
+    API_KEYS?: ApiKeys | Resolver<ApiKeys> | undefined;
 	ENCODE_PATH?: ((path: string) => string) | undefined;
 };
 
@@ -27,4 +29,11 @@ export const OpenAPI: OpenAPIConfig = {
 	PASSWORD: undefined,
 	HEADERS: undefined,
 	ENCODE_PATH: undefined,
+	{{#if apiKeys}}
+	API_KEYS: {
+	{{#each apiKeys}}
+		'{{{key}}}': undefined,
+	{{/each}}
+	}
+	{{/if}}
 };

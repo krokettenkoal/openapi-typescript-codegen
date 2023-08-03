@@ -150,6 +150,16 @@ export class {{{name}}}{{{@root.postfix}}} {
 				{{/each}}
 			},
 			{{/if}}
+			{{#if apiKeys}}
+				apiKeys: {
+					{{#each apiKeys}}
+					'{{{key}}}': {
+						name: '{{{name}}}',
+						in: '{{{in}}}'
+					},
+					{{/each}}
+				},
+			{{/if}}
 		});
 	}
 

@@ -35,6 +35,7 @@ export const writeClientCore = async (
         httpRequest,
         server: client.server,
         version: client.version,
+        apiKeys: client.apiKeys,
     };
 
     await writeFile(resolve(outputPath, 'OpenAPI.ts'), i(templates.core.settings(context), indent));

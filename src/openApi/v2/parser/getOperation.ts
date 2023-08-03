@@ -10,6 +10,7 @@ import { getOperationResponses } from './getOperationResponses';
 import { getOperationResults } from './getOperationResults';
 import { getServiceName } from './getServiceName';
 import { sortByRequired } from './sortByRequired';
+import { getOperationApiKeys } from "./getOperationApiKeys";
 
 export const getOperation = (
     openApi: OpenApi,
@@ -21,6 +22,7 @@ export const getOperation = (
 ): Operation => {
     const serviceName = getServiceName(tag);
     const operationName = getOperationName(url, method, op.operationId);
+    const apiKeys = getOperationApiKeys(openApi, op);
 
     // Create a new operation object for this method.
     const operation: Operation = {
@@ -31,6 +33,7 @@ export const getOperation = (
         deprecated: op.deprecated === true,
         method: method.toUpperCase(),
         path: url,
+        apiKeys: apiKeys,
         parameters: [...pathParams.parameters],
         parametersPath: [...pathParams.parametersPath],
         parametersQuery: [...pathParams.parametersQuery],

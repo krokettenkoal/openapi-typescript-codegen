@@ -1,6 +1,7 @@
 import type { OperationError } from './OperationError';
 import type { OperationParameters } from './OperationParameters';
 import type { OperationResponse } from './OperationResponse';
+import type { ApiKeyScheme } from "./ApiKeyScheme";
 
 export interface Operation extends OperationParameters {
     service: string;
@@ -14,4 +15,5 @@ export interface Operation extends OperationParameters {
     results: OperationResponse[];
     responseHeader: string | null;
     server?: string;
+    apiKeys?: ApiKeyScheme[];
 }
