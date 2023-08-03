@@ -29,5 +29,11 @@ export const OpenAPI: OpenAPIConfig = {
 	PASSWORD: undefined,
 	HEADERS: undefined,
 	ENCODE_PATH: undefined,
-	API_KEYS: undefined,
+	{{#if apiKeys}}
+	API_KEYS: {
+	{{#each apiKeys}}
+		'{{{key}}}': undefined,
+	{{/each}}
+	}
+	{{/if}}
 };

@@ -1,8 +1,8 @@
 import { OpenApi } from "../interfaces/OpenApi";
 import { OpenApiOperation } from "../interfaces/OpenApiOperation";
-import { OperationApiKey } from "../../../client/interfaces/OperationApiKey";
+import { ApiKeyScheme } from "../../../client/interfaces/ApiKeyScheme";
 
-export const getOperationApiKeys = (openApi: OpenApi, op: OpenApiOperation): OperationApiKey[] | undefined => {
+export const getOperationApiKeys = (openApi: OpenApi, op: OpenApiOperation): ApiKeyScheme[] | undefined => {
     //  Check op.security and openApi.security for any apiKey requirements.
     //  Transform the requirements into an OperationApiKeys object, holding the security scheme's name as key and the apiKey's name and location as value.
     //  Return the OperationApiKeys object.
@@ -14,7 +14,7 @@ export const getOperationApiKeys = (openApi: OpenApi, op: OpenApiOperation): Ope
         return undefined;
 
     //  Transform the requirements into an OperationApiKeys object, holding the security scheme's name as key and the apiKey's name and location as value.
-    const apiKeys: OperationApiKey[] = [];
+    const apiKeys: ApiKeyScheme[] = [];
     for (const securityRequirement of securityRequirements) {
         for (const securitySchemeName in securityRequirement) {
             if(!openApi.components?.securitySchemes?.hasOwnProperty(securitySchemeName))
